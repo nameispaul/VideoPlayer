@@ -197,7 +197,7 @@ val videoList = listOf(
     VideoData(
         "Stayin' Alive",
         "Song by Bee Gees",
-        "Starring: Kenley Russel Benitez and Dean Aynslie Garcia" +
+        "Starring: Kenley Russel Benitez and Dean Aynslie Garcia\n" +
                 "Movie: Saturday Night Fever\n" +
                 "Released: 1977\n" +
                 "Artist: Bee Gees\n" +
@@ -208,7 +208,7 @@ val videoList = listOf(
     VideoData(
         "Bye Bye Bye",
         "Song by NSYNC",
-        "Starring: Sir Xziann Jeano Genuino" +
+        "Starring: Sir Xziann Jeano Genuino\n" +
                 "Released: 2000\n" +
                 "Artist: NSYNC\n" +
                 "Album: No Strings Attached\n" +
@@ -219,7 +219,7 @@ val videoList = listOf(
     VideoData(
         "APTOII",
         "Song by Bruno Mars and Rosé",
-        "Created by Hotra" +
+        "Created by Hotra\n" +
                 "Released: 2024\n" +
                 "Artists: Rosé, Bruno Mars\n" +
                 "Album: Rosie\n" +
