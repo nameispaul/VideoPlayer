@@ -12,6 +12,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -323,13 +326,28 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     // Enter Fullscreen Mode
     LaunchedEffect(Unit) {
         insetsController?.hide(WindowInsets.Type.systemBars())
-        insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_DEFAULT
+        }
     }
 
-    // Restore System UI on Exit
+    // Create and remember the player instance
+    val player = remember {
+        ExoPlayer.Builder(context)
+            .setSeekBackIncrementMs(5000)
+            .setSeekForwardIncrementMs(5000)
+            .build().apply {
+                setMediaItem(MediaItem.fromUri(videoUri))
+                prepare()
+                playWhenReady = true
+            }
+    }
+
+    // Dispose Effect: Restore UI and release ExoPlayer
     DisposableEffect(Unit) {
         onDispose {
             insetsController?.show(WindowInsets.Type.systemBars())
+            player.release() // Release the player properly
         }
     }
 
@@ -341,7 +359,7 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     // Observe animation completion and navigate back
     if (!isVisible) {
         LaunchedEffect(Unit) {
-            delay(500) // Adjust delay to match animation duration
+            delay(500) // Matches the animation duration
             navController.popBackStack()
         }
     }
@@ -349,29 +367,25 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                PlayerView(context).apply {
-                    val player = ExoPlayer.Builder(context)
-                        .setSeekBackIncrementMs(5000)
-                        .setSeekForwardIncrementMs(5000)
-                        .build()
-                        .apply {
-                        setMediaItem(MediaItem.fromUri(videoUri))
-                        prepare()
-                        playWhenReady = true
+        // Fade-out animation when exiting
+        AnimatedVisibility(
+            visible = isVisible,
+            exit = fadeOut(animationSpec = tween(500)) // 500ms fade-out animation
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    PlayerView(context).apply {
+                        this.player = player
+                        this.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                        this.useController = true
+                        setShowPreviousButton(false) // Hide Previous Button
+                        setShowNextButton(false) // Hide Next Button
                     }
-                    this.player = player
-                    this.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    this.useController = true
-
-                    setShowPreviousButton(false) // Hide Previous Button
-                    setShowNextButton(false) // Hide Next Button
-                }
-            },
-        )
+                },
+            )
+        }
     }
 }
