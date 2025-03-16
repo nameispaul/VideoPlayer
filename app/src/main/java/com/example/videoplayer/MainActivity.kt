@@ -197,28 +197,43 @@ val videoList = listOf(
     VideoData(
         "Stayin' Alive",
         "Song by Bee Gees",
-        "Starring: Kenley Russel Benitez and Dean Aynslie Garcia",
+        "Starring: Kenley Russel Benitez and Dean Aynslie Garcia" +
+                "Movie: Saturday Night Fever\n" +
+                "Released: 1977\n" +
+                "Artist: Bee Gees\n" +
+                "Genres: Disco, Classic Soul",
         R.drawable.video1,
         R.raw.video1
     ),
     VideoData(
         "Bye Bye Bye",
         "Song by NSYNC",
-        "Starring Sir Xziann Jeano Genuino",
+        "Starring: Sir Xziann Jeano Genuino" +
+                "Released: 2000\n" +
+                "Artist: NSYNC\n" +
+                "Album: No Strings Attached\n" +
+                "Genre: Pop",
         R.drawable.video2,
         R.raw.video2
     ),
     VideoData(
         "APTOII",
         "Song by Bruno Mars and Rosé",
-        "Created by Hotra",
+        "Created by Hotra" +
+                "Released: 2024\n" +
+                "Artists: Rosé, Bruno Mars\n" +
+                "Album: Rosie\n" +
+                "Genre: K-Pop",
         R.drawable.video3,
         R.raw.video3
     ),
     VideoData(
         "Silvera",
         "Song by Gojira",
-        "This is my favorite song from this band.",
+        "Album: Magma\n" +
+                "Artist: Gojira\n" +
+                "Released: 2016\n" +
+                "Genres: Progressive metal, Metal, Groove metal",
         R.drawable.video4,
         R.raw.video4
     )
@@ -326,9 +341,8 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     // Enter Fullscreen Mode
     LaunchedEffect(Unit) {
         insetsController?.hide(WindowInsets.Type.systemBars())
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_DEFAULT
-        }
+        insetsController?.systemBarsBehavior =
+            WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
     // Create and remember the player instance
