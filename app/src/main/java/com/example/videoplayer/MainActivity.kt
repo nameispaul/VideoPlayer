@@ -327,51 +327,28 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
         }
     }
 
-
-    // Animated Visibility for Exit Transition
-    AnimatedVisibility(
-        visible = isVisible,
-        exit = fadeOut() // Customize exit animation
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
-        val context = LocalContext.current
-        val exoPlayer = remember {
-            ExoPlayer.Builder(context)
-                .setSeekBackIncrementMs(5000) // 10 seconds back
-                .setSeekForwardIncrementMs(5000)
-                .build()
-                .apply {
-                setMediaItem(MediaItem.fromUri(videoUri))
-                prepare()
-                playWhenReady = true
-            }
-        }
-
-        // Hide system UI
-        val window = (context as ComponentActivity).window
-        DisposableEffect(Unit) {
-
-            onDispose {
-                exoPlayer.release()
-            }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface),
-            contentAlignment = Alignment.Center
-        ) {
-            AndroidView(
-                factory = { ctx ->
-                    PlayerView(ctx).apply {
-                        player = exoPlayer
-                        useController = true
-                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        setShowPreviousButton(false) // Hide Previous Button
-                        setShowNextButton(false) // Hide Next Button
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                PlayerView(context).apply {
+                    val player = ExoPlayer.Builder(context).build().apply {
+                        setMediaItem(MediaItem.fromUri(videoUri))
+                        prepare()
+                        playWhenReady = true
                     }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+                    this.player = player
+                    this.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    this.useController = true
+
+                    setShowPreviousButton(false) // Hide Previous Button
+                    setShowNextButton(false) // Hide Next Button
+                }
+            },
+        )
     }
 }
