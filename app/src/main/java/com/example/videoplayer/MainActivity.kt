@@ -335,7 +335,11 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     ) {
         val context = LocalContext.current
         val exoPlayer = remember {
-            ExoPlayer.Builder(context).build().apply {
+            ExoPlayer.Builder(context)
+                .setSeekBackIncrementMs(5000) // 10 seconds back
+                .setSeekForwardIncrementMs(5000)
+                .build()
+                .apply {
                 setMediaItem(MediaItem.fromUri(videoUri))
                 prepare()
                 playWhenReady = true
