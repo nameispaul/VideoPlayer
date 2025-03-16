@@ -3,13 +3,15 @@ package com.example.videoplayer
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeOut
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -69,11 +71,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.videoplayer.ui.theme.GoogleSans
-import com.example.videoplayer.ui.theme.PressStart2P
 import com.example.videoplayer.ui.theme.VideoPlayerTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -83,6 +85,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.R)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MyApp() {
@@ -308,11 +311,27 @@ fun VideoCard(
     }
 }
 
-
+@RequiresApi(Build.VERSION_CODES.R)
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     var isVisible by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val window = (context as ComponentActivity).window
+    val insetsController = window.insetsController
+
+    // Enter Fullscreen Mode
+    LaunchedEffect(Unit) {
+        insetsController?.hide(WindowInsets.Type.systemBars())
+        insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
+    // Restore System UI on Exit
+    DisposableEffect(Unit) {
+        onDispose {
+            insetsController?.show(WindowInsets.Type.systemBars())
+        }
+    }
 
     // Handle Back Button Press
     BackHandler {
@@ -336,7 +355,11 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 PlayerView(context).apply {
-                    val player = ExoPlayer.Builder(context).build().apply {
+                    val player = ExoPlayer.Builder(context)
+                        .setSeekBackIncrementMs(5000)
+                        .setSeekForwardIncrementMs(5000)
+                        .build()
+                        .apply {
                         setMediaItem(MediaItem.fromUri(videoUri))
                         prepare()
                         playWhenReady = true
