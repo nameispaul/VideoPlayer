@@ -353,7 +353,6 @@ fun VideoCard(
         }
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.R)
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -378,16 +377,23 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
             .build().apply {
                 setMediaItem(MediaItem.fromUri(videoUri))
                 prepare()
-                playWhenReady = true
+                playWhenReady = false // Start in paused state
             }
     }
 
-    // Dispose Effect: Restore UI and release ExoPlayer
+    // Dispose Effect: Ensure the player is properly released
     DisposableEffect(Unit) {
         onDispose {
-            insetsController?.show(WindowInsets.Type.systemBars())
-            player.release() // Release the player properly
+            player.playWhenReady = false // Stop playback before releasing
+            player.release() // Release the player
+            insetsController?.show(WindowInsets.Type.systemBars()) // Restore system UI
         }
+    }
+
+    // Delay before starting playback (to avoid instant play)
+    LaunchedEffect(Unit) {
+        delay(1000) // 2-second delay before playback
+        player.playWhenReady = true
     }
 
     // Handle Back Button Press
@@ -411,7 +417,7 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
         // Fade-out animation when exiting
         AnimatedVisibility(
             visible = isVisible,
-            exit = fadeOut(animationSpec = tween(500)) // 500ms fade-out animation
+            exit = fadeOut() // 500ms fade-out animation
         ) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
