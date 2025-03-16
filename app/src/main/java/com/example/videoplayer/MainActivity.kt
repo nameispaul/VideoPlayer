@@ -45,12 +45,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +77,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.videoplayer.ui.theme.GoogleSans
 import com.example.videoplayer.ui.theme.VideoPlayerTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -93,8 +96,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
+    var isDarkTheme by rememberSaveable { mutableStateOf(false) } // Theme toggle state
+    val systemUiController = rememberSystemUiController()
 
-    VideoPlayerTheme {
+    // Set system bars color
+    LaunchedEffect(isDarkTheme) {
+        val statusBarColor = if (isDarkTheme) darkColorScheme().surface else Color.Transparent
+        val navBarColor = if (isDarkTheme) darkColorScheme().surface else Color.Transparent
+        val isDarkIcons = !isDarkTheme
+
+        systemUiController.setStatusBarColor(statusBarColor, darkIcons = isDarkIcons)
+        systemUiController.setNavigationBarColor(navBarColor, darkIcons = isDarkIcons)
+    }
+
+    VideoPlayerTheme(darkTheme = isDarkTheme) {
         Scaffold(
             modifier = Modifier.background(MaterialTheme.colorScheme.surface), // Set the background color
             content = {
@@ -104,7 +119,11 @@ fun MyApp() {
                         .background(MaterialTheme.colorScheme.surface) // Ensure the whole screen uses this background
                 ) {
                     NavHost(navController, startDestination = "upload") {
-                        composable("upload") { UploadScreen(navController) }
+                        composable("upload") {
+                            UploadScreen(navController, isDarkTheme, toggleTheme = {
+                                isDarkTheme = !isDarkTheme
+                            })
+                        }
                         composable(
                             "player/{videoUri}",
                             arguments = listOf(navArgument("videoUri") {
@@ -124,7 +143,7 @@ fun MyApp() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UploadScreen(navController: NavController) {
+fun UploadScreen(navController: NavController, isDarkTheme: Boolean, toggleTheme: () -> Unit) {
     LocalContext.current
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -133,12 +152,19 @@ fun UploadScreen(navController: NavController) {
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        "Music Videos",
-                    )
+                    Text("Music Videos")
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                )
+                actions = {
+                    IconButton(onClick = toggleTheme) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (isDarkTheme) R.drawable.ic_light_mode else R.drawable.ic_dark_mode
+                            ),
+                            contentDescription = "Toggle Theme"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors()
             )
         },
     ) { padding ->
@@ -191,7 +217,6 @@ fun UploadScreen(navController: NavController) {
         }
     }
 }
-
 // List of videos
 val videoList = listOf(
     VideoData(
@@ -381,7 +406,7 @@ fun VideoPlayerScreen(navController: NavController, videoUri: Uri) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.Black)
     ) {
         // Fade-out animation when exiting
         AnimatedVisibility(
